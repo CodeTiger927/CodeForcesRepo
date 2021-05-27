@@ -21,10 +21,6 @@ struct matrix {
 		}
 		return m;
 	}
-	void print() {
-		cout << A[0][0] << " " << A[0][1] << endl;
-		cout << A[1][0] << " " << A[1][1] << endl;
-	}
 };
 
 int N,M,s[MAXN];
