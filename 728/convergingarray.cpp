@@ -3,53 +3,58 @@ using namespace std;
 #include <iostream>
 #include <cstring>
 
-#define MAXN 105
 #define MOD 1000000007
+#define MAXN 105
 
-int N,Q,b[MAXN],c[MAXN],q[MAXN];
-// dp[i][j][k] = last i, last number is j, sum is k
-long long dp[2][MAXN][2 * MAXN * MAXN];
+int N,K,Q,a[MAXN],b[MAXN],f[MAXN],dp[MAXN * MAXN];
 
 int main() {
-	ios_base::sync_with_stdio(0);
-	cin.tie(0);
 	cin >> N;
-	for(int i = 0;i < N;++i) cin >> c[i];
-	for(int i = 0;i < N - 1;++i) cin >> b[i];
-	for(int i = 0;i <= c[N - 1];++i) {
-		dp[(N - 1) & 1][i][0] = 1;
+	K = N * MAXN;
+	for(int i = 1;i <= N;++i) {
+		cin >> a[i];
 	}
-	for(int i = N - 1;i > 0;--i) {
-		memset(dp[(i - 1) & 1],0,sizeof(dp[(i - 1) & 1]));
-		for(int j = 0;j <= c[i];++j) {
-			for(int k = 0;k <= (N - i - 1) * 200;++k) {
-				if(!dp[i & 1][j][k]) continue;
-				for(int x = 0;x <= c[i - 1];++x) {
-					int t = b[i - 1] - (j - x);
-					int nk = 0;
-					if(t >= 0) {
-						nk = t + max(0,k + t);
-					}else{
-						nk = max(0,k + 2 * t);
-					}
-					dp[(i - 1) & 1][x][nk] += dp[i & 1][j][k];
-					if(dp[(i - 1) & 1][x][nk] >= MOD) dp[(i - 1) & 1][x][nk] -= MOD;
-				}
+	for(int i = 2;i <= N;++i) {
+		cin >> b[i];
+		b[i] += b[i - 1];
+	}
+	int s = 1e9;
+	int e = 1e9;
+	int pre = 0;
+	for(int i = 1;i <= N;++i) {
+		pre += a[i];
+		b[i] += b[i - 1];
+		s = min(s,-b[i] / i - 1);
+		e = min(e,(pre - b[i]) / i + 1);
+	}
+	for(int i = s;i <= e;++i) {
+		memset(dp,0,sizeof(dp));
+		dp[0] = 1;
+		for(int j = 1;j <= N;++j) {
+			for(int k = 1;k <= K;++k) {
+				dp[k] += dp[k - 1];
+				if(dp[k] >= MOD) dp[k] -= MOD;
 			}
+			for(int k = K;~k;--k) {
+				if(k < i * j + b[j]) {
+					dp[k] += MOD - dp[k];
+				}else if(k > a[j]) {
+					dp[k] += MOD - dp[k - a[j] - 1];
+				}
+				dp[k] %= MOD;
+			}
+		}
+		for(int j = 0;j <= K;++j) {
+			f[i - s] += dp[j];
+			if(f[i - s] >= MOD) f[i - s] -= MOD;
 		}
 	}
 	cin >> Q;
-	for(int i = 0;i < Q;++i) cin >> q[i];
-	long long ans = 0;
-	for(int i = 0;i <= c[0];++i) {
-		for(int j = 0;j <= 100 * 200;++j) {
-			long long cur = 2 * i - j;
-			if(dp[0][i][j]) cout << i << " " << j << " " << cur << " " << dp[0][i][j] << endl;
-			if(cur >= 2 * q[0]) {
-				ans += dp[0][i][j];
-			}
-		}
+	while(Q--) {
+		int x;
+		cin >> x;
+		x = max(s,min(x,e));
+		cout << f[x - s] << endl;
 	}
-	cout << ans << endl;
 	return 0;
 }
